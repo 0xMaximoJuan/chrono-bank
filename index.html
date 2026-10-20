@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHRONOS // The Sovereign Time Reserve</title>
+  
+  <!-- Google Fonts: Space Grotesk + Plus Jakarta Sans + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN con configuración personalizada -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            chrono: {
+              cyan: '#00F5FF',
+              blue: '#0A84FF',
+              emerald: '#00FF87',
+              gold: '#FFB800',
+              purple: '#8A2BE2',
+              danger: '#FF3B30',
+              dark: '#060709',
+              card: '#0D1117',
+              border: 'rgba(255, 255, 255, 0.08)',
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-8px)' },
+            },
+            glow: {
+              '0%': { boxShadow: '0 0 15px rgba(0, 245, 255, 0.2)' },
+              '100%': { boxShadow: '0 0 35px rgba(0, 245, 255, 0.6)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-chrono-dark text-slate-100 min-h-screen overflow-x-hidden antialiased selection:bg-chrono-cyan selection:text-black">
+
+  <!-- Background Ambience Canvas (Partículas de flujo temporal) -->
+  <canvas id="chrono-particles" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+  <div class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-chrono-cyan/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-chrono-purple/10 rounded-full blur-[160px] pointer-events-none -z-10"></div>
+
+  <!-- Contenedor Principal con Layout Bancario -->
+  <div class="relative z-10 flex min-h-screen">
+
+    <!-- SIDEBAR DE NAVEGACIÓN -->
+    <aside class="w-72 border-r border-chrono-border bg-chrono-card/70 backdrop-blur-2xl flex flex-col justify-between hidden lg:flex sticky top-0 h-screen p-6">
+      <div>
+        <!-- Logo -->
+        <div onclick="switchTab('dashboard')" class="flex items-center gap-3 mb-8 group cursor-pointer">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-chrono-cyan via-chrono-blue to-chrono-purple p-[1.5px] transition-transform duration-300 group-hover:scale-105 shadow-lg shadow-chrono-cyan/20">
+            <div class="w-full h-full bg-chrono-dark rounded-2xl flex items-center justify-center">
+              <i data-lucide="hourglass" class="w-5 h-5 text-chrono-cyan animate-pulse"></i>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-display font-bold text-xl tracking-wider bg-gradient-to-r from-white via-slate-200 to-chrono-cyan bg-clip-text text-transparent">CHRONOS</span>
+              <span class="text-[9px] font-mono tracking-widest px-1.5 py-0.5 rounded bg-chrono-cyan/10 border border-chrono-cyan/30 text-chrono-cyan">v4.2</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono tracking-wider">QUANTUM TIME RESERVE</p>
+          </div>
+        </div>
+
+        <!-- Estado de Sincronización Biométrica -->
+        <div class="p-3.5 mb-6 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-md">
+          <div class="flex items-center justify-between text-xs mb-1.5">
+            <span class="text-slate-400 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-chrono-emerald animate-ping"></span>
+              Sincronización Neural
+            </span>
+            <span class="font-mono text-chrono-emerald text-[11px]">99.98%</span>
+          </div>
+          <p class="text-[11px] text-slate-500 font-mono">Nodo cuántico: <span class="text-slate-300">ZÚRICH-01</span></p>
+        </div>
+
+        <!-- Menú de Navegación -->
+        <nav class="space-y-1.5">
+          <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            <span>Bóveda Principal</span>
+          </button>
+          
+          <!-- NUEVA SECCIÓN DE TRANSFERENCIA DEDICADA -->
+          <button onclick="switchTab('transfer')" id="nav-transfer" class="nav-item w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/[0.04] transition-all duration-200">
+            <i data-lucide="arrow-up-right" class="w-4 h-4 text-chrono-cyan"></i>
+            <span>Transferir Tiempo</span>
+            <span class="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-chrono-cyan/10 text-chrono-cyan border border-chrono-cyan/20">P2P</span>
+          </button>
+
+          <button onclick="switchTab('market')" id="nav-market" class="nav-item w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/[0.04] transition-all duration-200">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            <span>Mercado de Tiempo</span>
+            <span class="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-chrono-emerald/10 text-chrono-emerald border border-chrono-emerald/20">+14.2%</span>
+          </button>
+          
+          <button onclick="switchTab('vaults')" id="nav-vaults" class="nav-item w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/[0.04] transition-all duration-200">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>Cámaras Criogénicas</span>
+            <span class="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-chrono-purple/20 text-chrono-purple">APY 18%</span>
+          </button>
+          
+          <button onclick="switchTab('cards')" id="nav-cards" class="nav-item w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/[0.04] transition-all duration-200">
+            <i data-lucide="credit-card" class="w-4 h-4"></i>
+            <span>Tarjeta Chronos Black</span>
+          </button>
+          
+          <button onclick="switchTab('ledger')" id="nav-ledger" class="nav-item w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/[0.04] transition-all duration-200">
+            <i data-lucide="clock-rewind" class="w-4 h-4"></i>
+            <span>Registro Temporal (Ledger)</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Perfil inferior & Control de Audio -->
+      <div class="border-t border-chrono-border pt-4">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Audio Háptico</span>
+          <button id="sound-toggle" onclick="toggleAudio()" class="text-xs px-2.5 py-1 rounded-lg bg-white/[0.05] border border-white/[0.1] text-chrono-cyan hover:bg-white/[0.1] transition-colors flex items-center gap-1.5">
+            <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+            <span id="sound-label">ON</span>
+          </button>
+        </div>
+
+        <!-- Tarjeta de Usuario con opción de iniciar sesión / registrarse -->
+        <div onclick="openAuthModal()" class="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] cursor-pointer transition-all group">
+          <div id="user-avatar" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-chrono-cyan to-chrono-blue flex items-center justify-center font-bold text-black text-xs font-display shrink-0 group-hover:scale-105 transition-transform">
+            AR
+          </div>
+          <div class="flex-1 min-w-0">
+            <p id="user-display-name" class="text-xs font-semibold truncate text-white">Dr. Alexander Rowe</p>
+            <p id="user-display-tag" class="text-[10px] text-chrono-cyan font-mono truncate">@alexander.rowe</p>
+          </div>
+          <i data-lucide="user-cog" class="w-4 h-4 text-slate-400 group-hover:text-white transition-colors"></i>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ÁREA DE CONTENIDO PRINCIPAL -->
+    <main class="flex-1 flex flex-col min-h-screen">
+      
+      <!-- HEADER SUPERIOR -->
+      <header class="h-20 border-b border-chrono-border bg-chrono-dark/60 backdrop-blur-xl px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30">
+        <!-- Navegación móvil y breadcrumb -->
+        <div class="flex items-center gap-4">
+          <button class="lg:hidden p-2 rounded-lg bg-white/5 border border-white/10" onclick="alert('Usa la barra inferior o la vista de escritorio para la experiencia inmersiva.')">
+            <i data-lucide="menu" class="w-5 h-5 text-slate-300"></i>
+          </button>
+          <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400">
+              <span>Banca Privada Temporal</span>
+              <span>/</span>
+              <span id="breadcrumb-title" class="text-slate-200 font-medium">Bóveda General</span>
+            </div>
+            <h1 id="page-title" class="text-lg lg:text-xl font-bold font-display text-white">Estado de Reserva Vital</h1>
+          </div>
+        </div>
+
+        <!-- Acciones Rápidas del Header -->
+        <div class="flex items-center gap-3">
+          <button onclick="openModal('buy')" class="btn-sound px-4 py-2 rounded-xl bg-chrono-cyan text-chrono-dark font-semibold text-xs tracking-wide flex items-center gap-2 hover:bg-white hover:shadow-lg hover:shadow-chrono-cyan/30 transition-all duration-200">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>Comprar Tiempo</span>
+          </button>
+          
+          <button onclick="switchTab('transfer')" class="btn-sound px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-white font-semibold text-xs tracking-wide flex items-center gap-2 transition-all">
+            <i data-lucide="send" class="w-4 h-4 text-chrono-cyan"></i>
+            <span class="hidden sm:inline">Transferir</span>
+          </button>
+
+          <!-- Botón de Cuenta / Perfil -->
+          <button onclick="openAuthModal()" class="px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-slate-200 text-xs font-mono flex items-center gap-2 transition-all">
+            <i data-lucide="user" class="w-4 h-4 text-chrono-cyan"></i>
+            <span id="header-user-btn" class="hidden md:inline">Cuenta</span>
+          </button>
+
+          <div class="w-px h-6 bg-chrono-border mx-1 hidden sm:block"></div>
+          <button onclick="toggleAlerts()" class="relative p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-slate-300 hover:text-white">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-chrono-cyan animate-pulse"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- TICKER DE VELOCIDAD DE MERCADO (Ticker Tape) -->
+      <div class="border-b border-chrono-border bg-black/40 overflow-hidden py-2 px-6">
+        <div class="flex items-center gap-8 font-mono text-xs whitespace-nowrap animate-ticker">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">1 HORA ESTÁNDAR:</span>
+            <span class="text-chrono-cyan font-semibold">$148.50 USD</span>
+            <span class="text-chrono-emerald text-[11px]">(+3.2%)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">1 DÍA BIOLÓGICO:</span>
+            <span class="text-chrono-cyan font-semibold">$3,564.00 USD</span>
+            <span class="text-chrono-emerald text-[11px]">(+1.8%)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">1 AÑO INMUNOLÓGICO:</span>
+            <span class="text-chrono-cyan font-semibold">$1,300,860 USD</span>
+            <span class="text-chrono-emerald text-[11px]">(+12.4%)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">TASA METABÓLICA BASE:</span>
+            <span class="text-chrono-gold font-semibold">1.000000 seg/seg</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">VOLUMEN GLOBAL 24H:</span>
+            <span class="text-slate-200 font-semibold">48,920 Años</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENEDORES DE LAS VISTAS (TABS) -->
+      <div class="p-6 lg:p-10 flex-1 space-y-8 max-w-7xl w-full mx-auto">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: DASHBOARD PRINCIPAL                 -->
+        <!-- ========================================== -->
+        <section id="view-dashboard" class="tab-content space-y-8">
+          
+          <!-- BANNER HERO DE SALDO TEMPORAL EN VIVO -->
+          <div class="relative overflow-hidden rounded-3xl border border-chrono-border bg-gradient-to-b from-white/[0.05] to-transparent p-6 sm:p-10 backdrop-blur-2xl">
+            <!-- Glow detrás del reloj -->
+            <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-chrono-cyan/20 rounded-full blur-[100px] pointer-events-none"></div>
+
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+              <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-chrono-cyan/10 border border-chrono-cyan/30 text-chrono-cyan text-xs font-mono mb-4">
+                  <i data-lucide="infinity" class="w-3.5 h-3.5"></i>
+                  BALANCE VITAL DISPONIBLE
+                </div>
+                
+                <!-- Display del reloj principal de vida con milisegundos en tiempo real -->
+                <div class="flex flex-wrap items-baseline gap-2 sm:gap-4 font-mono">
+                  <div class="flex items-baseline gap-1">
+                    <span id="years-val" class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight">46</span>
+                    <span class="text-xs sm:text-sm text-chrono-cyan uppercase tracking-wider font-semibold">Años</span>
+                  </div>
+                  <span class="text-2xl sm:text-4xl text-slate-600">:</span>
+                  <div class="flex items-baseline gap-1">
+                    <span id="days-val" class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight">184</span>
+                    <span class="text-xs sm:text-sm text-chrono-cyan uppercase tracking-wider font-semibold">Días</span>
+                  </div>
+                  <span class="text-2xl sm:text-4xl text-slate-600">:</span>
+                  <div class="flex items-baseline gap-1">
+                    <span id="hours-val" class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight">16</span>
+                    <span class="text-xs sm:text-sm text-chrono-cyan uppercase tracking-wider font-semibold">Horas</span>
+                  </div>
+                  <span class="text-2xl sm:text-4xl text-slate-600">:</span>
+                  <div class="flex items-baseline gap-1">
+                    <span id="mins-val" class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight">42</span>
+                    <span class="text-xs sm:text-sm text-chrono-cyan uppercase tracking-wider font-semibold">Min</span>
+                  </div>
+                  <span class="text-2xl sm:text-4xl text-slate-600">:</span>
+                  <div class="flex items-baseline gap-1">
+                    <span id="secs-val" class="text-4xl sm:text-6xl font-extrabold text-chrono-cyan tracking-tight animate-pulse">38</span>
+                    <span id="millis-val" class="text-lg sm:text-2xl font-mono text-chrono-cyan/70">.84</span>
+                    <span class="text-xs sm:text-sm text-chrono-cyan uppercase tracking-wider font-semibold">Seg</span>
+                  </div>
+                </div>
+
+                <!-- Sub-métricas -->
+                <div class="flex flex-wrap items-center gap-6 mt-6 pt-6 border-t border-white/[0.06] text-xs font-mono">
+                  <div>
+                    <span class="text-slate-400">Valoración FIAT:</span>
+                    <span id="dashboard-fiat-val" class="text-slate-100 font-bold ml-1.5">$60,542,880.00 USD</span>
+                  </div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
+                  <div>
+                    <span class="text-slate-400">Tasa de Desgaste:</span>
+                    <span class="text-chrono-emerald font-bold ml-1.5">-0.82 seg/seg (Óptima)</span>
+                  </div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
+                  <div>
+                    <span class="text-slate-400">Rendimiento Pasivo:</span>
+                    <span class="text-chrono-cyan font-bold ml-1.5">+2.4 Horas / Día</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botones de Acción de Alto Impacto -->
+              <div class="flex flex-col gap-3 min-w-[200px]">
+                <button onclick="openModal('buy')" class="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-chrono-cyan to-chrono-blue text-black font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 shadow-lg shadow-chrono-cyan/25 hover:shadow-chrono-cyan/50 hover:scale-[1.02] transition-all">
+                  <i data-lucide="zap" class="w-4 h-4 fill-black"></i>
+                  Recarga Instantánea
+                </button>
+                <button onclick="switchTab('transfer')" class="w-full py-3.5 px-5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-medium text-sm flex items-center justify-center gap-2.5 transition-all">
+                  <i data-lucide="send" class="w-4 h-4 text-chrono-cyan"></i>
+                  Enviar Tiempo a Usuario
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- GRID: TARJETA CHRONOS TITANIUM & RESUMEN DE FLUJO -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- TARJETA BANCARIA INTERACTIVA 3D -->
+            <div class="lg:col-span-5 flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-display font-semibold text-base text-slate-200 flex items-center gap-2">
+                  <i data-lucide="credit-card" class="w-4 h-4 text-chrono-cyan"></i>
+                  Tarjeta Chronos Obsidian Metal
+                </h3>
+                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-chrono-gold/10 text-chrono-gold border border-chrono-gold/20">EDICIÓN LIMITADA</span>
+              </div>
+
+              <!-- Contenedor 3D Card -->
+              <div id="chrono-card-container" class="relative group cursor-pointer w-full aspect-[1.586/1] rounded-3xl p-6 sm:p-7 flex flex-col justify-between overflow-hidden border border-white/[0.15] shadow-2xl transition-all duration-300 transform perspective-1000 bg-gradient-to-br from-slate-900 via-black to-[#090D16]">
+                
+                <!-- Efecto de brillo holográfico -->
+                <div class="card-shimmer absolute inset-0 pointer-events-none opacity-40 group-hover:opacity-75 transition-opacity"></div>
+                
+                <!-- Header de la tarjeta -->
+                <div class="relative z-10 flex items-start justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center">
+                      <i data-lucide="hourglass" class="w-4 h-4 text-chrono-cyan"></i>
+                    </div>
+                    <span class="font-display font-bold text-sm tracking-wider text-white">CHRONOS</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="wifi" class="w-5 h-5 text-slate-400 rotate-90"></i>
+                    <span class="text-[10px] font-mono tracking-widest text-chrono-cyan border border-chrono-cyan/30 px-1.5 py-0.5 rounded">BLACK</span>
+                  </div>
+                </div>
+
+                <!-- Chip EMV de alta fidelidad -->
+                <div class="relative z-10 flex items-center gap-4 my-2">
+                  <div class="w-12 h-9 rounded-md bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-600 p-[1px] shadow-md">
+                    <div class="w-full h-full bg-amber-500/80 rounded flex items-center justify-center relative overflow-hidden">
+                      <div class="w-full h-[1px] bg-amber-700/60 my-0.5"></div>
+                      <div class="h-full w-[1px] bg-amber-700/60 mx-1 absolute"></div>
+                    </div>
+                  </div>
+                  <span class="text-[11px] font-mono text-slate-400 tracking-wider">GASTO TEMPORAL DIRECTO</span>
+                </div>
+
+                <!-- Número de tarjeta y datos -->
+                <div class="relative z-10 space-y-3">
+                  <div class="flex items-center justify-between font-mono text-base sm:text-lg tracking-widest text-slate-200">
+                    <span id="card-digits">4819 •••• •••• 9012</span>
+                    <button onclick="toggleCardNumber(event)" class="text-xs text-chrono-cyan hover:underline p-1">
+                      <i id="card-eye" data-lucide="eye" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="flex items-center justify-between text-xs font-mono pt-2 border-t border-white/[0.08]">
+                    <div>
+                      <p class="text-[9px] text-slate-500 uppercase">Titular Vitalicio</p>
+                      <p id="card-holder-name" class="font-semibold text-slate-200 tracking-wider">A. ROWE</p>
+                    </div>
+                    <div>
+                      <p class="text-[9px] text-slate-500 uppercase">Vence</p>
+                      <p class="font-semibold text-slate-200 tracking-wider">12 / ∞</p>
+                    </div>
+                    <div>
+                      <p class="text-[9px] text-slate-500 uppercase">Red</p>
+                      <p class="font-semibold text-chrono-cyan tracking-wider">QUANTUM PAY</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Controles Rápidos de la Tarjeta -->
+              <div class="grid grid-cols-3 gap-3 mt-4">
+                <button onclick="toggleCardFreeze()" id="btn-freeze" class="p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] flex flex-col items-center gap-1 text-slate-300 hover:text-white transition-all text-xs">
+                  <i data-lucide="snowflake" class="w-4 h-4 text-chrono-cyan"></i>
+                  <span id="freeze-text">Congelar</span>
+                </button>
+                <button onclick="alert('Límite de consumo contactless: 8 horas por transacción.')" class="p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] flex flex-col items-center gap-1 text-slate-300 hover:text-white transition-all text-xs">
+                  <i data-lucide="sliders" class="w-4 h-4 text-chrono-gold"></i>
+                  <span>Límites</span>
+                </button>
+                <button onclick="alert('PIN de seguridad cuántica: 9 8 2 1 (Autorizado por pulso cardíaco)')" class="p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] flex flex-col items-center gap-1 text-slate-300 hover:text-white transition-all text-xs">
+                  <i data-lucide="key" class="w-4 h-4 text-chrono-purple"></i>
+                  <span>PIN Vital</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- GRÁFICO DE TASA DE FLUJO Y CONSUMO BIOLÓGICO -->
+            <div class="lg:col-span-7 rounded-3xl border border-chrono-border bg-chrono-card/50 p-6 flex flex-col justify-between backdrop-blur-xl">
+              <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <div>
+                  <h3 class="font-display font-semibold text-base text-slate-100 flex items-center gap-2">
+                    <i data-lucide="activity" class="w-4 h-4 text-chrono-cyan"></i>
+                    Dinámica de Rendimiento vs. Gasto Vital (7 Días)
+                  </h3>
+                  <p class="text-xs text-slate-400 mt-0.5">Medición de aportes por Staking y quema biológica de horas</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-mono">
+                  <span class="inline-flex items-center gap-1 text-chrono-emerald">
+                    <span class="w-2 h-2 rounded-full bg-chrono-emerald"></span> Ingreso de Horas
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-chrono-danger ml-3">
+                    <span class="w-2 h-2 rounded-full bg-chrono-danger"></span> Consumo Vital
+                  </span>
+                </div>
+              </div>
+
+              <!-- Canvas Chart.js -->
+              <div class="h-64 w-full relative">
+                <canvas id="vitalFlowChart"></canvas>
+              </div>
+
+              <!-- Métricas al pie del gráfico -->
+              <div class="grid grid-cols-3 gap-4 pt-4 mt-4 border-t border-chrono-border text-center">
+                <div>
+                  <p class="text-[11px] text-slate-400 font-mono">Horas Ganadas (Semana)</p>
+                  <p class="text-base font-bold text-chrono-emerald font-mono">+16.8 Horas</p>
+                </div>
+                <div>
+                  <p class="text-[11px] text-slate-400 font-mono">Tiempo Gastado</p>
+                  <p class="text-base font-bold text-slate-200 font-mono">-168.0 Horas</p>
+                </div>
+                <div>
+                  <p class="text-[11px] text-slate-400 font-mono">Eficiencia Metabólica</p>
+                  <p class="text-base font-bold text-chrono-cyan font-mono">+112% Superávit</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- HISTORIAL RECIENTE DE TRANSACCIONES TEMPORALES -->
+          <div class="rounded-3xl border border-chrono-border bg-chrono-card/40 p-6 backdrop-blur-xl">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="font-display font-semibold text-base text-slate-100 flex items-center gap-2">
+                  <i data-lucide="list" class="w-4 h-4 text-chrono-cyan"></i>
+                  Actividad Temporal Reciente
+                </h3>
+                <p class="text-xs text-slate-400">Verificaciones criptográficas en la red ChronoLedger</p>
+              </div>
+              <button onclick="switchTab('ledger')" class="text-xs text-chrono-cyan hover:underline flex items-center gap-1 font-mono">
+                Ver todo el registro <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <div id="recent-transactions-list" class="space-y-3">
+              <!-- Las transacciones se renderizan dinámicamente con JS -->
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- NUEVO TAB DEDICADO: TRANSFERIR TIEMPO POR USUARIO O CORREO   -->
+        <!-- ============================================================ -->
+        <section id="view-transfer" class="tab-content hidden space-y-8">
+          
+          <div class="border border-chrono-border rounded-3xl bg-gradient-to-r from-chrono-cyan/10 via-chrono-card to-chrono-blue/10 p-6 sm:p-8 backdrop-blur-xl">
+            <div class="max-w-3xl">
+              <span class="text-xs font-mono px-3 py-1 rounded-full bg-chrono-cyan/10 text-chrono-cyan border border-chrono-cyan/30">PROTOCOLO P2P QUANTUM-RELAY</span>
+              <h2 class="font-display font-bold text-2xl sm:text-3xl text-white mt-3 mb-2">Transferencia Instantánea de Tiempo Vital</h2>
+              <p class="text-slate-300 text-sm leading-relaxed">
+                Envía fracciones de segundos, horas o años a cualquier persona en el mundo mediante su <b>nombre de usuario (@ChronoTag)</b> o su <b>correo electrónico registrado</b>. Sin intermediarios bancarios tradicionales, con liquidación en menos de 400 milisegundos.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- FORMULARIO DE TRANSFERENCIA -->
+            <div class="lg:col-span-7 rounded-3xl border border-chrono-border bg-chrono-card/80 p-6 sm:p-8 backdrop-blur-xl space-y-6">
+              
+              <!-- Selector de Modo de Envío: Por Usuario o Por Correo -->
+              <div>
+                <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Método de Destino</label>
+                <div class="grid grid-cols-2 p-1 rounded-2xl bg-black/50 border border-white/10">
+                  <button type="button" id="tab-mode-user" onclick="setTransferMode('user')" class="py-2.5 rounded-xl text-xs font-semibold font-mono flex items-center justify-center gap-2 bg-chrono-cyan text-black transition-all">
+                    <i data-lucide="at-sign" class="w-4 h-4"></i> Por Nombre de Usuario
+                  </button>
+                  <button type="button" id="tab-mode-email" onclick="setTransferMode('email')" class="py-2.5 rounded-xl text-xs font-semibold font-mono flex items-center justify-center gap-2 text-slate-400 hover:text-white transition-all">
+                    <i data-lucide="mail" class="w-4 h-4"></i> Por Correo Electrónico
+                  </button>
+                </div>
+              </div>
+
+              <!-- Campo de Entrada del Destinatario -->
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <label id="dest-input-label" class="text-xs font-mono text-slate-300 font-semibold">Nombre de Usuario (@ChronoTag)</label>
+                  <span class="text-[11px] text-chrono-emerald font-mono flex items-center gap-1">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Verificación Criptográfica Activa
+                  </span>
+                </div>
+                <div class="relative">
+                  <input id="p2p-destination-input" type="text" placeholder="@usuario.chrono" value="@elena.vance" class="w-full px-4 py-3.5 pl-11 rounded-2xl bg-black/40 border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-chrono-cyan transition-colors" />
+                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                    <i id="dest-input-icon" data-lucide="at-sign" class="w-4 h-4 text-chrono-cyan"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contactos Frecuentes / Rápidos -->
+              <div>
+                <p class="text-xs font-mono text-slate-400 mb-2">Contactos de Frecuencia Vital:</p>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" onclick="quickFillContact('@elena.vance', 'elena@chronos.net')" class="px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-mono text-slate-300 flex items-center gap-2 transition-all">
+                    <span class="w-2 h-2 rounded-full bg-chrono-cyan"></span> Elena Vance
+                  </button>
+                  <button type="button" onclick="quickFillContact('@m.sterling', 'sterling@orbital.ch')" class="px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-mono text-slate-300 flex items-center gap-2 transition-all">
+                    <span class="w-2 h-2 rounded-full bg-chrono-emerald"></span> Marcus Sterling
+                  </button>
+                  <button type="button" onclick="quickFillContact('@sarah.vital', 'sarah@geneva-corp.eu')" class="px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-mono text-slate-300 flex items-center gap-2 transition-all">
+                    <span class="w-2 h-2 rounded-full bg-chrono-purple"></span> Sarah Connor
+                  </button>
+                </div>
+              </div>
+
+              <!-- Monto de Tiempo a Transferir -->
+              <div class="space-y-3">
+                <div class="flex justify-between items-center text-xs font-mono">
+                  <span class="text-slate-300 font-semibold">Cantidad de Tiempo Vital</span>
+                  <span class="text-slate-400">Disponible: <b id="p2p-max-time" class="text-chrono-cyan">46 Años, 184 Días</b></span>
+                </div>
+
+                <!-- Botones preconfigurados -->
+                <div class="grid grid-cols-4 gap-2">
+                  <button type="button" onclick="setP2PAmount('1 Hora', 3600, 148.50)" class="p2p-btn px-2 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono hover:border-chrono-cyan transition-colors">1 Hora</button>
+                  <button type="button" onclick="setP2PAmount('1 Día', 86400, 3564.00)" class="p2p-btn px-2 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono hover:border-chrono-cyan transition-colors">1 Día</button>
+                  <button type="button" onclick="setP2PAmount('1 Semana', 604800, 24948.00)" class="p2p-btn px-2 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono hover:border-chrono-cyan transition-colors">1 Semana</button>
+                  <button type="button" onclick="setP2PAmount('1 Mes', 2592000, 106920.00)" class="p2p-btn px-2 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono hover:border-chrono-cyan transition-colors">1 Mes</button>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-black/50 border border-white/10 flex items-center justify-between">
+                  <div>
+                    <input id="p2p-display-amount" type="text" value="1 Día (24 Horas)" readonly class="bg-transparent text-xl font-bold font-mono text-chrono-cyan focus:outline-none" />
+                    <p id="p2p-display-fiat" class="text-xs font-mono text-slate-400 mt-0.5">Equivalente de Mercado: ~$3,564.00 USD</p>
+                  </div>
+                  <span class="text-xs font-mono px-3 py-1 rounded-xl bg-chrono-cyan/15 text-chrono-cyan border border-chrono-cyan/30">SEGUNDOS: 86,400</span>
+                </div>
+              </div>
+
+              <!-- Concepto / Memo -->
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1.5">Nota o Propósito Vital (Opcional)</label>
+                <input id="p2p-memo" type="text" placeholder="Ej. Aporte para tu nuevo proyecto sin prisas..." class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-chrono-cyan font-sans" />
+              </div>
+
+              <!-- Botón de Envío -->
+              <button onclick="executeP2PTransfer()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-chrono-cyan via-chrono-blue to-chrono-purple text-black font-bold text-sm tracking-wide shadow-lg shadow-chrono-cyan/25 hover:shadow-chrono-cyan/50 hover:scale-[1.01] transition-all flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-4 h-4 fill-black"></i>
+                Autorizar Transferencia Inmediata
+              </button>
+
+            </div>
+
+            <!-- PANEL DE CONFIRMACIÓN Y TELEMETRÍA -->
+            <div class="lg:col-span-5 space-y-6">
+              
+              <!-- Tarjeta de Desglose Cuántico -->
+              <div class="rounded-3xl border border-chrono-border bg-chrono-card/60 p-6 backdrop-blur-xl space-y-4">
+                <h3 class="font-display font-semibold text-base text-white flex items-center gap-2">
+                  <i data-lucide="cpu" class="w-4 h-4 text-chrono-cyan"></i>
+                  Detalles del Despacho Temporal
+                </h3>
+
+                <div class="space-y-3 font-mono text-xs border-y border-white/[0.06] py-4">
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Origen:</span>
+                    <span id="p2p-sender-display" class="text-slate-200">Dr. Alexander Rowe (@alexander.rowe)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Destinatario Validado:</span>
+                    <span id="p2p-target-display" class="text-chrono-cyan font-bold">@elena.vance</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Comisión de Red (ChronoGas):</span>
+                    <span class="text-chrono-emerald font-bold">0.00 Segundos (GRATIS)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Tiempo de Confirmación:</span>
+                    <span class="text-slate-200">&lt; 0.40 Segundos</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Cifrado de Enlace:</span>
+                    <span class="text-chrono-purple">Post-Quantum Kyber-1024</span>
+                  </div>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-chrono-gold/10 border border-chrono-gold/20 flex items-start gap-3 text-xs font-mono text-chrono-gold">
+                  <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                  <span>Al transferir, las células temporales se desincronizan de tu organismo y se reensamblan en el receptor. Esta acción es irrevocable.</span>
+                </div>
+              </div>
+
+              <!-- Tarjeta de Beneficios Chronos P2P -->
+              <div class="rounded-3xl border border-chrono-border bg-white/[0.02] p-6 space-y-3 text-xs">
+                <h4 class="font-bold text-slate-200 flex items-center gap-2">
+                  <i data-lucide="check-circle" class="w-4 h-4 text-chrono-emerald"></i>
+                  ¿Por qué transferir tiempo en Chronos?
+                </h4>
+                <ul class="space-y-2 text-slate-400">
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-chrono-cyan"></span>
+                    Transferencias internacionales directas a cualquier correo o alias.
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-chrono-cyan"></span>
+                    Notificación instantánea en el dispositivo neural del receptor.
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-chrono-cyan"></span>
+                    Certificado de donación o pago vital acuñado en el T-Ledger.
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 3: MERCADO DE TIEMPO (SWAP & TRADING)  -->
+        <!-- ========================================== -->
+        <section id="view-market" class="tab-content hidden space-y-8">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Terminal de Intercambio Instantáneo (Swap) -->
+            <div class="lg:col-span-5 rounded-3xl border border-chrono-border bg-chrono-card/70 p-6 sm:p-8 backdrop-blur-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-6">
+                  <h3 class="font-display font-semibold text-lg text-white flex items-center gap-2">
+                    <i data-lucide="refresh-cw" class="w-5 h-5 text-chrono-cyan"></i>
+                    Conversor Cuántico
+                  </h3>
+                  <span class="text-xs font-mono px-2 py-0.5 rounded bg-chrono-cyan/10 text-chrono-cyan border border-chrono-cyan/20">FEE: 0.00%</span>
+                </div>
+
+                <!-- Input Pagar -->
+                <div class="p-4 rounded-2xl bg-black/40 border border-white/[0.08] mb-2 space-y-2">
+                  <div class="flex justify-between text-xs text-slate-400">
+                    <span>Pagas con activo</span>
+                    <span>Disponible: <b class="text-slate-200 font-mono">$124,500 USD</b></span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <input id="swap-input-amount" type="number" value="1485" oninput="calculateSwap()" class="w-full bg-transparent text-2xl font-mono font-bold text-white focus:outline-none" placeholder="0.00" />
+                    <select id="swap-currency" onchange="calculateSwap()" class="bg-white/[0.06] text-white border border-white/10 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none">
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="BTC">BTC (₿)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Botón swap flip -->
+                <div class="flex justify-center -my-2 relative z-10">
+                  <button class="w-9 h-9 rounded-full bg-chrono-dark border border-white/20 flex items-center justify-center text-chrono-cyan hover:scale-110 transition-transform">
+                    <i data-lucide="arrow-down-up" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <!-- Input Recibir Tiempo -->
+                <div class="p-4 rounded-2xl bg-black/40 border border-white/[0.08] mt-2 space-y-2">
+                  <div class="flex justify-between text-xs text-slate-400">
+                    <span>Recibes en Bóveda</span>
+                    <span class="text-chrono-emerald text-xs font-mono">Crédito Inmediato</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <input id="swap-output-time" type="text" value="+10 Horas" readonly class="w-full bg-transparent text-2xl font-mono font-bold text-chrono-cyan focus:outline-none" />
+                    <span class="bg-chrono-cyan/15 text-chrono-cyan border border-chrono-cyan/30 rounded-xl px-3 py-2 text-sm font-semibold font-mono">TIME (Horas)</span>
+                  </div>
+                </div>
+
+                <!-- Detalles de la Tasa -->
+                <div class="space-y-2 text-xs font-mono text-slate-400 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] mt-5">
+                  <div class="flex justify-between">
+                    <span>Tasa de Cambio Oficial:</span>
+                    <span class="text-slate-200">1 Hora = $148.50 USD</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Inyección de Vida:</span>
+                    <span class="text-chrono-emerald font-bold">+36,000 Segundos Vitales</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Impacto en Esperanza de Vida:</span>
+                    <span class="text-chrono-cyan">+0.00114 Años</span>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="executeSwap()" class="w-full mt-6 py-4 rounded-2xl bg-gradient-to-r from-chrono-cyan to-chrono-blue text-black font-bold text-sm tracking-wide shadow-lg shadow-chrono-cyan/25 hover:shadow-chrono-cyan/50 hover:scale-[1.01] transition-all flex items-center justify-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4 fill-black"></i>
+                Confirmar Adquisición de Tiempo
+              </button>
+            </div>
+
+            <!-- Gráfico del Mercado de Tiempo -->
+            <div class="lg:col-span-7 rounded-3xl border border-chrono-border bg-chrono-card/70 p-6 sm:p-8 backdrop-blur-xl">
+              <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-display font-bold text-xl text-white">CHRONO / USD</h3>
+                    <span class="text-xs font-mono text-chrono-emerald bg-chrono-emerald/10 border border-chrono-emerald/20 px-2 py-0.5 rounded">+8.42% Hoy</span>
+                  </div>
+                  <p class="text-xs text-slate-400">Cotización del valor de 1 Hora Vital en los mercados globales</p>
+                </div>
+                <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10 text-xs font-mono">
+                  <button class="px-2.5 py-1 rounded-lg bg-white/10 text-white">1D</button>
+                  <button class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">1S</button>
+                  <button class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">1M</button>
+                  <button class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">1A</button>
+                </div>
+              </div>
+
+              <!-- Gráfico de Mercado -->
+              <div class="h-80 w-full relative">
+                <canvas id="marketCandleChart"></canvas>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-chrono-border text-xs font-mono">
+                <div>
+                  <span class="text-slate-400 block">Máximo 24h</span>
+                  <span class="text-slate-100 font-bold">$154.20</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block">Mínimo 24h</span>
+                  <span class="text-slate-100 font-bold">$142.10</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block">Capitalización Temporal</span>
+                  <span class="text-slate-100 font-bold">$12.4 Trillones</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block">Índice de Escasez</span>
+                  <span class="text-chrono-gold font-bold">98.4 / 100</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 4: BÓVEDAS Y STAKING CRIOGÉNICO        -->
+        <!-- ========================================== -->
+        <section id="view-vaults" class="tab-content hidden space-y-8">
+          <div class="border border-chrono-border rounded-3xl bg-gradient-to-r from-chrono-purple/15 via-chrono-card to-chrono-cyan/10 p-8 backdrop-blur-xl">
+            <div class="max-w-2xl">
+              <span class="text-xs font-mono px-3 py-1 rounded-full bg-chrono-purple/20 text-chrono-purple border border-chrono-purple/30">CÁMARAS TEMPORALES CUÁNTICAS</span>
+              <h2 class="font-display font-bold text-2xl sm:text-3xl text-white mt-3 mb-2">Multiplica tus Años con Interés Compuesto Vital</h2>
+              <p class="text-slate-300 text-sm leading-relaxed">
+                Bloquea unidades de tiempo en las cámaras criogénicas descentralizadas de Chronos. Mientras tu tiempo está congelado, la red genera dividendos de longevidad celular garantizados por algoritmos de nano-rejuvenecimiento.
+              </p>
+            </div>
+          </div>
+
+          <!-- Grid de Bóvedas -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Vault 1: Bóveda Centinela -->
+            <div class="rounded-3xl border border-chrono-border bg-chrono-card/60 p-6 flex flex-col justify-between hover:border-chrono-cyan/40 transition-all">
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-chrono-cyan/10 border border-chrono-cyan/20 flex items-center justify-center mb-4">
+                  <i data-lucide="shield" class="w-6 h-6 text-chrono-cyan"></i>
+                </div>
+                <h4 class="font-display font-bold text-lg text-white">Bóveda Flexible</h4>
+                <p class="text-xs text-slate-400 mt-1">Retiro instantáneo de segundos sin penalizaciones biológicas.</p>
+                
+                <div class="my-6 space-y-3 font-mono text-xs">
+                  <div class="flex justify-between pb-2 border-b border-white/[0.05]">
+                    <span class="text-slate-400">Rendimiento Anual (APY):</span>
+                    <span class="text-chrono-emerald font-bold text-sm">6.50%</span>
+                  </div>
+                  <div class="flex justify-between pb-2 border-b border-white/[0.05]">
+                    <span class="text-slate-400">Periodo de bloqueo:</span>
+                    <span class="text-slate-200">0 Días (Líquido)</span>
+                  </div>
+                  <div class="flex justify-between pb-2 border-b border-white/[0.05]">
+                    <span class="text-slate-400">Tiempo Depositado:</span>
+                    <span class="text-chrono-cyan font-bold">1 Año, 40 Días</span>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="stakeAction('Flexible', '6.50%')" class="w-full py-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white font-semibold text-xs tracking-wide transition-all">
+                Añadir Tiempo a Bóveda
+              </button>
+            </div>
+
+            <!-- Vault 2: Bóveda Criogénica (Destacada) -->
+            <div class="rounded-3xl border border-chrono-cyan/40 bg-chrono-card/80 p-6 flex flex-col justify-between relative shadow-xl shadow-chrono-cyan/10 hover:border-chrono-cyan transition-all">
+              <div class="absolute -top-3 right-6 bg-gradient-to-r from-chrono-cyan to-chrono-blue text-black font-mono font-bold text-[10px] uppercase px-3 py-1 rounded-full">
+                MÁS POPULAR
+              </div>
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-chrono-cyan/20 border border-chrono-cyan/40 flex items-center justify-center mb-4">
+                  <i data-lucide="snowflake" class="w-6 h-6 text-chrono-cyan"></i>
+                </div>
+                <h4 class="font-display font-bold text-lg text-white">Suspensión de 1 Año</h4>
+                <p class="text-xs text-slate-400 mt-1">Congelación metabólica estándar. Dividendos entregados cada semana.</p>
+                
+                <div class="my-6 space-y-3 font-mono text-xs">
+                  <div class="flex justify-between pb-2 border-b border-white/[0.05]">
+                    <span class="text-slate-400">Rendimiento Anual (APY):</span>
+                    <span class="text-chrono-emerald font-bold text-sm">18.25%</span>
+                  </div>
+                  <div class="flex justify-between pb-2 border-b border-white/[0.05]">
+                    <span class="text-slate-400">Periodo de bloqueo:</span>
+                    <span class="text-slate-200">365 Días</span>
+                  </div>
+                  <div class="flex justify-between pb-2 border-b border-white/[0.05]">
+                    <span class="text-slate-400">Rendimiento estimado:</span>
+                    <span class="text-chrono-cyan font-bold">+66 Días Gratis</span>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="stakeAction('Criogénica 1 Año', '18.25%')" class="w-full py-3 rounded-xl bg-chrono-cyan text-chrono-dark font-bold text-xs tracking-wide hover:bg-white transition-all shadow-md shadow-chrono-cyan/20">
+                Iniciar Suspensión
+              </button>
+            </div>
+
+            <!-- Vault 3: Cápsula Inmortal VIP -->
+            <div class="rounded-3xl border border-chrono-purple/30 bg-chrono-card/60 p-6 flex flex-col justify-between hover:border-chrono-purple transition-all">
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-chrono-purple/20 border border-chrono-purple/30 flex items-center justify-center mb-4">
+                  <i data-lucide="crown" class="w-6 h-6 text-chrono-purple"></i>
+                </div>
+                <h4 class="font-display font-bold text-lg text-white">Cápsula Inmortal (5 Años)</h4>
+                <p class="text-xs text-slate-400 mt-1">Para visionarios de alta longevidad. Interés compuesto exponencial.</p>
+                
+                <div class="my-6 space-y-3 font-mono text-xs">
+                  <div class="flex justify-between pb-2 border-b border-white/[0.05]">
+                    <span class="text-slate-400">Rendimiento Anual (APY):</span>
+                    <span class="text-chrono-emerald font-bold text-sm">34.80%</span>
+                  </div>
+                  <div class="flex justify-between pb-2 border-b border-white/[0.05]">
+                    <span class="text-slate-400">Periodo de bloqueo:</span>
+                    <span class="text-slate-200">5 Años Solares</span>
+                  </div>
+                  <div class="flex justify-between pb-2 border-b border-white/[0.05]">
+                    <span class="text-slate-400">Multiplicador:</span>
+                    <span class="text-chrono-purple font-bold">2.4x Vital Net</span>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="stakeAction('Inmortal VIP', '34.80%')" class="w-full py-3 rounded-xl bg-white/[0.06] hover:bg-chrono-purple hover:text-white border border-white/10 text-white font-semibold text-xs tracking-wide transition-all">
+                Activar Protocolo Inmortal
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 5: TARJETA Y SEGURIDAD                 -->
+        <!-- ========================================== -->
+        <section id="view-cards" class="tab-content hidden space-y-8">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-6 space-y-6">
+              <h2 class="font-display font-bold text-2xl text-white">Gestión de la Tarjeta Chronos Black</h2>
+              <p class="text-slate-400 text-sm">Tu tarjeta física forjada en titanio espacial con microprocesador bio-sincronizado. Permite pagar con fracciones de minutos en cualquier terminal contactless del mundo.</p>
+
+              <!-- Lista de características -->
+              <div class="space-y-4">
+                <div class="flex items-start gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+                  <div class="p-2.5 rounded-xl bg-chrono-cyan/10 text-chrono-cyan">
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h5 class="text-sm font-semibold text-white">Liquidación en Milisegundos</h5>
+                    <p class="text-xs text-slate-400 mt-0.5">El comerciante recibe FIAT y tu cuenta descuenta la cantidad exacta de segundos de vida.</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+                  <div class="p-2.5 rounded-xl bg-chrono-emerald/10 text-chrono-emerald">
+                    <i data-lucide="fingerprint" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h5 class="text-sm font-semibold text-white">Autorización por ADN / Pulso</h5>
+                    <p class="text-xs text-slate-400 mt-0.5">Imposible de clonar: solo funciona cuando detecta tu frecuencia cardíaca registrada.</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+                  <div class="p-2.5 rounded-xl bg-chrono-purple/10 text-chrono-purple">
+                    <i data-lucide="globe" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h5 class="text-sm font-semibold text-white">Cero Comisiones de Frontera</h5>
+                    <p class="text-xs text-slate-400 mt-0.5">El tiempo no tiene nacionalidad. Válida en más de 190 países.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel de Seguridad de Tarjeta -->
+            <div class="lg:col-span-6 rounded-3xl border border-chrono-border bg-chrono-card/70 p-8 backdrop-blur-xl space-y-6">
+              <h3 class="font-display font-semibold text-lg text-white">Configuración de Seguridad Cuántica</h3>
+              
+              <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/[0.06]">
+                  <div>
+                    <p class="text-sm font-medium text-white">Protección contra Pérdida Temporal</p>
+                    <p class="text-xs text-slate-400">Si tu balance baja de 30 días, la tarjeta se bloquea automáticamente.</p>
+                  </div>
+                  <input type="checkbox" checked class="w-5 h-5 accent-chrono-cyan cursor-pointer" />
+                </div>
+
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/[0.06]">
+                  <div>
+                    <p class="text-sm font-medium text-white">Pagos Sin Contacto (NFC)</p>
+                    <p class="text-xs text-slate-400">Límite diario: 8 Horas por transacción.</p>
+                  </div>
+                  <input type="checkbox" checked class="w-5 h-5 accent-chrono-cyan cursor-pointer" />
+                </div>
+
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/[0.06]">
+                  <div>
+                    <p class="text-sm font-medium text-white">CVV Dinámico de Vida</p>
+                    <p class="text-xs text-slate-400">El código de seguridad cambia cada 60 segundos.</p>
+                  </div>
+                  <input type="checkbox" checked class="w-5 h-5 accent-chrono-cyan cursor-pointer" />
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-chrono-danger/10 border border-chrono-danger/20">
+                <div class="flex items-center gap-3 text-chrono-danger">
+                  <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                  <span class="text-xs font-bold font-mono">ZONA DE MÁXIMA ALERTA</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-2">En caso de sospecha de robo biológico o secuestro temporal, activa el Protocolo Cero para transferir tus años a una bóveda fría no rastreable.</p>
+                <button onclick="alert('Protocolo de Emergencia Cuántica en Espera. Requiere confirmación biométrica física.')" class="mt-3 text-xs px-3 py-1.5 rounded-lg bg-chrono-danger/20 text-chrono-danger border border-chrono-danger/40 hover:bg-chrono-danger hover:text-white transition-colors">
+                  Activar Protocolo Cero
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 6: REGISTRO HISTÓRICO (LEDGER)         -->
+        <!-- ========================================== -->
+        <section id="view-ledger" class="tab-content hidden space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="font-display font-bold text-2xl text-white">T-Ledger // Registro Inmutable</h2>
+              <p class="text-slate-400 text-sm">Cada segundo añadido o transferido es acuñado en la cadena temporal Chronos.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <input type="text" placeholder="Buscar por Hash o ID..." class="px-4 py-2 rounded-xl bg-black/40 border border-white/10 text-xs text-white focus:outline-none focus:border-chrono-cyan font-mono w-60" />
+              <button onclick="exportLedger()" class="px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-xs font-mono text-slate-200 flex items-center gap-2">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabla Completa de Transacciones -->
+          <div class="rounded-3xl border border-chrono-border bg-chrono-card/50 overflow-hidden backdrop-blur-xl">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-chrono-border bg-white/[0.02] text-slate-400 font-mono uppercase tracking-wider">
+                    <th class="p-4 pl-6">Hash de Transacción</th>
+                    <th class="p-4">Concepto / Entidad</th>
+                    <th class="p-4">Tipo</th>
+                    <th class="p-4">Fecha & Hora</th>
+                    <th class="p-4">Volumen Vital</th>
+                    <th class="p-4 pr-6 text-right">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="full-ledger-table" class="divide-y divide-white/[0.04] font-mono">
+                  <!-- Llenado dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: CREAR CUENTA / INICIAR SESIÓN (SISTEMA DE AUTENTICACIÓN) -->
+  <!-- ============================================================ -->
+  <div id="modal-auth" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-3xl border border-chrono-border bg-chrono-card p-6 sm:p-8 space-y-6 shadow-2xl relative">
+      <button onclick="closeAuthModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="text-center">
+        <div class="w-12 h-12 rounded-2xl bg-chrono-cyan/10 border border-chrono-cyan/30 text-chrono-cyan flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="user-plus" class="w-6 h-6"></i>
+        </div>
+        <h3 id="auth-modal-title" class="font-display font-bold text-2xl text-white">Registro de Identidad Vital</h3>
+        <p id="auth-modal-subtitle" class="text-xs text-slate-400 mt-1">Crea tu cuenta en Chronos para gestionar tu reserva de tiempo.</p>
+      </div>
+
+      <!-- Selector de Modo: Registro vs Login -->
+      <div class="grid grid-cols-2 p-1 rounded-2xl bg-black/50 border border-white/10">
+        <button type="button" id="tab-auth-register" onclick="toggleAuthMode('register')" class="py-2 rounded-xl text-xs font-semibold font-mono bg-chrono-cyan text-black transition-all">
+          Crear Cuenta
+        </button>
+        <button type="button" id="tab-auth-login" onclick="toggleAuthMode('login')" class="py-2 rounded-xl text-xs font-semibold font-mono text-slate-400 hover:text-white transition-all">
+          Iniciar Sesión
+        </button>
+      </div>
+
+      <!-- FORMULARIO DE REGISTRO -->
+      <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-mono text-slate-300 mb-1">Nombre Completo</label>
+          <div class="relative">
+            <input id="reg-name" type="text" required placeholder="Ej. Juan Sebastián Ramos" class="w-full px-4 py-3 pl-10 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-chrono-cyan font-sans" />
+            <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-slate-300 mb-1">Correo Electrónico</label>
+          <div class="relative">
+            <input id="reg-email" type="email" required placeholder="juan@gmail.com" class="w-full px-4 py-3 pl-10 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-chrono-cyan font-mono" />
+            <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-slate-300 mb-1">Nombre de Usuario (@ChronoTag deseado)</label>
+          <div class="relative">
+            <input id="reg-tag" type="text" required placeholder="@juan.time" class="w-full px-4 py-3 pl-10 rounded-xl bg-black/40 border border-white/10 text-chrono-cyan text-xs focus:outline-none focus:border-chrono-cyan font-mono" />
+            <i data-lucide="at-sign" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-slate-300 mb-1">Contraseña de Seguridad</label>
+          <div class="relative">
+            <input id="reg-password" type="password" required placeholder="••••••••••••" class="w-full px-4 py-3 pl-10 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-chrono-cyan font-mono" />
+            <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-chrono-emerald/10 border border-chrono-emerald/20 flex items-center gap-2.5 text-xs font-mono text-chrono-emerald">
+          <i data-lucide="gift" class="w-4 h-4 shrink-0"></i>
+          <span>Bono de bienvenida: <b>+50 Años de Vida</b> acreditados al registrarte.</span>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-chrono-cyan to-chrono-blue text-black font-bold text-xs tracking-wider uppercase shadow-lg shadow-chrono-cyan/25 hover:shadow-chrono-cyan/40 hover:scale-[1.01] transition-all">
+          Completar Registro y Abrir Bóveda
+        </button>
+      </form>
+
+      <!-- FORMULARIO DE INICIO DE SESIÓN -->
+      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-mono text-slate-300 mb-1">Correo Electrónico o @ChronoTag</label>
+          <div class="relative">
+            <input id="login-identifier" type="text" required placeholder="juan@gmail.com o @juan.time" class="w-full px-4 py-3 pl-10 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-chrono-cyan font-mono" />
+            <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-slate-300 mb-1">Contraseña</label>
+          <div class="relative">
+            <input id="login-password" type="password" required placeholder="••••••••••••" class="w-full px-4 py-3 pl-10 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-chrono-cyan font-mono" />
+            <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-chrono-cyan text-black font-bold text-xs tracking-wider uppercase shadow-lg shadow-chrono-cyan/25 hover:scale-[1.01] transition-all">
+          Acceder a mi Bóveda
+        </button>
+      </form>
+
+      <!-- Opción de Cerrar Sesión si ya está logueado -->
+      <div id="auth-logout-area" class="pt-2 border-t border-white/[0.06] text-center">
+        <button onclick="handleLogout()" class="text-xs text-chrono-danger hover:underline font-mono flex items-center justify-center gap-1.5 mx-auto">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Cerrar sesión del titular actual
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: COMPRAR TIEMPO (RECARGA INSTANTÁNEA) -->
+  <!-- ========================================== -->
+  <div id="modal-buy" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-3xl border border-chrono-border bg-chrono-card p-6 sm:p-8 space-y-6 shadow-2xl relative">
+      <button onclick="closeModal('buy')" class="absolute top-6 right-6 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div>
+        <div class="inline-flex items-center gap-1.5 text-chrono-cyan text-xs font-mono mb-1">
+          <i data-lucide="zap" class="w-4 h-4"></i> MERCADO OFICIAL CHRONOS
+        </div>
+        <h3 class="font-display font-bold text-xl text-white">Comprar Esperanza de Vida</h3>
+        <p class="text-xs text-slate-400">Selecciona el paquete temporal que deseas inyectar a tu flujo vital.</p>
+      </div>
+
+      <!-- Opciones Rápidas de Paquetes -->
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="selectPackage('24 Horas', 3564, 86400)" class="pkg-card p-4 rounded-2xl border border-white/10 hover:border-chrono-cyan bg-white/[0.02] text-left transition-all">
+          <span class="text-xs text-slate-400 font-mono block">Paquete Emergencia</span>
+          <span class="text-lg font-bold text-white font-mono block mt-1">+24 Horas</span>
+          <span class="text-xs text-chrono-cyan font-mono">$3,564 USD</span>
+        </button>
+
+        <button onclick="selectPackage('1 Mes', 106920, 2592000)" class="pkg-card p-4 rounded-2xl border border-white/10 hover:border-chrono-cyan bg-white/[0.02] text-left transition-all">
+          <span class="text-xs text-slate-400 font-mono block">Paquete Respiro</span>
+          <span class="text-lg font-bold text-white font-mono block mt-1">+30 Días</span>
+          <span class="text-xs text-chrono-cyan font-mono">$106,920 USD</span>
+        </button>
+
+        <button onclick="selectPackage('1 Año', 1300860, 31536000)" class="pkg-card p-4 rounded-2xl border border-chrono-cyan/50 bg-chrono-cyan/5 text-left transition-all">
+          <span class="text-xs text-chrono-cyan font-mono block font-semibold">★ MÁS ADQUIRIDO</span>
+          <span class="text-lg font-bold text-white font-mono block mt-1">+1 Año Completo</span>
+          <span class="text-xs text-chrono-emerald font-mono">$1,300,860 USD</span>
+        </button>
+
+        <button onclick="selectPackage('1 Década', 12500000, 315360000)" class="pkg-card p-4 rounded-2xl border border-chrono-purple/50 bg-chrono-purple/5 text-left transition-all">
+          <span class="text-xs text-chrono-purple font-mono block font-semibold">LEGADO VITAL</span>
+          <span class="text-lg font-bold text-white font-mono block mt-1">+10 Años</span>
+          <span class="text-xs text-chrono-purple font-mono">$12,500,000 USD</span>
+        </button>
+      </div>
+
+      <!-- Desglose -->
+      <div class="p-4 rounded-2xl bg-black/40 border border-white/[0.08] text-xs font-mono space-y-2">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Paquete Seleccionado:</span>
+          <span id="selected-pkg-name" class="text-white font-bold">+1 Año Completo</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Total a debitar:</span>
+          <span id="selected-pkg-cost" class="text-chrono-emerald font-bold">$1,300,860 USD</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Método de pago:</span>
+          <span class="text-slate-200">Fondo Suizo #CH-9921</span>
+        </div>
+      </div>
+
+      <button onclick="confirmPurchase()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-chrono-cyan to-chrono-blue text-black font-bold text-sm tracking-wide shadow-lg shadow-chrono-cyan/30 hover:scale-[1.01] transition-all">
+        Confirmar e Inyectar Tiempo
+      </button>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIÓN TOAST FLOTANTE -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 max-w-sm rounded-2xl border border-chrono-cyan/40 bg-chrono-dark/90 backdrop-blur-xl p-4 shadow-2xl shadow-chrono-cyan/20 transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-3">
+    <div id="toast-icon-bg" class="w-10 h-10 rounded-xl bg-chrono-cyan/20 border border-chrono-cyan/40 flex items-center justify-center shrink-0">
+      <i id="toast-icon" data-lucide="check" class="w-5 h-5 text-chrono-cyan"></i>
+    </div>
+    <div class="min-w-0">
+      <p id="toast-title" class="text-xs font-bold font-display text-white">Transacción Exitosa</p>
+      <p id="toast-message" class="text-[11px] text-slate-300 truncate">El tiempo ha sido sincronizado en tu bóveda.</p>
+    </div>
+  </div>
+
+  <!-- Scripts Modulares -->
+  <script src="js/audio.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
